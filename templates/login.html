@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block head %}
+<!-- Підключення Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- Налаштування Google Identity Services -->
+<script>
+  function handleCredentialResponse(response) {
+    console.log("Encoded JWT ID token: " + response.credential);
+
+    // Надсилання токена на сервер
+    fetch('/google_login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id_token: response.credential })
+    }).then(response => {
+      if (response.ok) {
+        console.log('Login successful');
+        // Перенаправлення на dashboard
+        window.location.href = "/dashboard";
+      } else {
+        console.error('Error during Google Sign-In: Response not OK');
+      }
+    }).catch(error => {
+      console.error("Fetch error: ", error);
+    });
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<h2>Login</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.username.label }}<br>
+        {{ form.username(size=32) }}
+    </div>
+    <div>
+        {{ form.password.label }}<br>
+        {{ form.password(size=32) }}
+    </div>
+    <div>
+        {{ form.submit() }}
+    </div>
+</form>
+{% if message %}
+<p style="color: red;">{{ message }}</p>
+{% endif %}
+
+<div id="g_id_onload"
+     data-client_id="932706135120-3p02i71qjr258g98sd159p84v9qf02im.apps.googleusercontent.com"
+     data-callback="handleCredentialResponse">
+</div>
+<div class="g_id_signin"></div>
+
+<p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+{% endblock %}
+

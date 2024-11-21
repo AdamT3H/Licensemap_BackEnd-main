@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        function handleSignOut() {
+            console.log("Signing out...");
+            google.accounts.id.disableAutoSelect(); // Вимикає автоматичний вибір акаунта
+            alert("You have been signed out.");
+            window.location.href = "/login"; // Повернення на сторінку логіну
+        }
+    </script>
+</head>
+<body>
+  <h2>Welcome, {{ user.username }}!</h2>
+  <p>Your Email: {{ user.email }}</p>
+
+  <!-- Logout button -->
+  <button onclick="handleSignOut()">Logout</button>
+</body>
+</html>
