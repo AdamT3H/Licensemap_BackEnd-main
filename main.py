@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column,Session
 from sqlalchemy import Integer, String, Text
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
@@ -11,9 +11,13 @@ import requests
 from dotenv import load_dotenv
 import os
 import uuid
+from flask_cors import CORS
+from webSkreping import fetch_data_from_url_latvia
 
 app = Flask(__name__)
 load_dotenv()
+CORS(app)
+
 
 app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -21,64 +25,55 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
 
-class UserForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = StringField('Password', validators=[DataRequired()])
-    confirm_password = StringField('Confirm password', validators=[DataRequired()])
-    submit = SubmitField("Login")
-
-
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = StringField('Password', validators=[DataRequired()])
-    submit = SubmitField("Login")
-
-@app.route("/register", methods=["GET", "POST"])
+@app.route("/register", methods=["POST"])
 def register():
-    form = UserForm()
-    if form.validate_on_submit():
-        user = form.username.data
-        password = form.password.data
-        confirm_pass = form.confirm_password.data
+    data = request.get_json()
+    first_name = data.get("firstName")
+    last_name = data.get("lastName")
+    email = data.get("email")
+    username = data.get("username")
+    password = data.get("password")
+    confirm_password = data.get("confirmPassword")
 
-        existing_user = mongo.db.user_posts.find_one({'username': user})
-        if existing_user:
-            message = "User is already registered"
-            return render_template("register.html", form=form, message=message)
-        
-        if password != confirm_pass:
-            message = "Passwords do not match"
-            return render_template("register.html", form=form, message=message)
-        
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    if not all([first_name, last_name, email, username, password, confirm_password]):
+        return jsonify({"message": "All fields are required"}), 400
 
-        new_user = {
-            'user': user,
-            'hash_password': hashed_password
-        }
-        mongo.db.user_posts.insert_one(new_user)
-        return redirect(url_for('login'))
-    
-    return render_template("register.html", form=form)
+    if password != confirm_password:
+        return jsonify({"message": "Passwords do not match"}), 400
 
-@app.route("/login", methods=["GET", "POST"])
+    existing_user = mongo.db.user_posts.find_one({'username': username})
+    if existing_user:
+        return jsonify({"message": "User is already registered"}), 400
+
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+
+    new_user = {
+        'first_name': first_name,
+        'last_name': last_name,
+        'email': email,
+        'username': username,
+        'hash_password': hashed_password
+    }
+    mongo.db.user_posts.insert_one(new_user)
+    return jsonify({"message": "Registration successful"}), 201
+
+
+@app.route("/login", methods=["POST"])
 def login():
-    form = LoginForm()
-    message = None 
-    if form.validate_on_submit():
-        user = form.username.data
-        password = form.password.data
-        print(password)
-        existing_user = mongo.db.user_posts.find_one({'user': user})
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
-        if existing_user and bcrypt.check_password_hash(existing_user['hash_password'], password):
-            message = "Login successful"
-            return render_template("login.html", form=form, message=message)
-        else:
-            message = "Invalid username or password"
-            return render_template("login.html", form=form, message=message)
+    if not username or not password:
+        return jsonify({"message": "Username and password are required"}), 400
 
-    return render_template("login.html", form=form, message=message)
+    existing_user = mongo.db.user_posts.find_one({'username': username})
+
+    if existing_user and bcrypt.check_password_hash(existing_user['hash_password'], password):
+        return jsonify({"message": "Login successful"}), 200
+
+    return jsonify({"message": "Invalid username or password"}), 401
+
 
 @app.route('/')
 def home():
@@ -108,15 +103,6 @@ def dashboard():
     if not user:
         return redirect(url_for('login'))
     return render_template("dashboard.html", user=user)
-
-# @app.route('/test_db')
-# def test_db():
-#     try:
-#         users_count = mongo.db.user_posts
-#         return f'Connected! Number of users: {users_count}'
-#     except Exception as e:
-#         return f"Database connection error: {e}"
-
 
 if __name__ == "__main__":
     app.run(debug=True, host="localhost",port=5003)
