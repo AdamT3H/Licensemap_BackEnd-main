@@ -1,10 +1,4 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column,Session
-from sqlalchemy import Integer, String, Text
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired
 from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 import requests
@@ -13,17 +7,20 @@ import os
 import uuid
 from flask_cors import CORS
 from webSkreping import fetch_data_from_url_latvia
+import webSkreping
 
 app = Flask(__name__)
 load_dotenv()
 CORS(app)
 
 
-app.config['MONGO_URI'] = os.getenv('MONGO_URI')
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['MONGO_URI'] = "mongodb+srv://Asstro699:qwerty111111@cluster0.lnr9qbv.mongodb.net/licenses?retryWrites=true&w=majority&appName=Cluster0"
+app.config['SECRET_KEY'] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
+
 
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
+
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -103,6 +100,54 @@ def dashboard():
     if not user:
         return redirect(url_for('login'))
     return render_template("dashboard.html", user=user)
+
+@app.route('/upload_data')
+def upload_data():
+    print("✅ MongoDB підключено. Колекції:", mongo.db.list_collection_names())
+    collection = mongo.db.scraped_data
+    doc_count = collection.count_documents({})
+    print(f"🔹 Кількість документів у `scraped_data` перед очищенням: {doc_count}")
+
+    if doc_count > 0:
+        print("⚠️ Колекція вже містить дані, очищаємо...")
+        delete_result = collection.delete_many({})
+        print(f"✅ Видалено {delete_result.deleted_count} документів")
+
+    
+    scraped_data = webSkreping.fetch_data_from_url_latvia()
+    if not scraped_data:
+        return jsonify({"message": "❌ scraped_data порожній!"}), 400
+    
+    formatted_data = []
+    counter = 1
+
+    for i in range(1, 10):
+        title_key = f"element_{i}_title"
+        text_key = f"element_{i}_text"
+
+        if title_key in scraped_data and text_key in scraped_data:
+            formatted_data.append({
+                "id": counter,
+                "title": scraped_data[title_key],
+                "text": scraped_data[text_key],
+                "_id": str(uuid.uuid4())
+            })
+            counter += 1
+
+    if not formatted_data:
+        return jsonify({"message": "❌ Немає даних для вставки в MongoDB"}), 400
+
+    result = collection.insert_many(formatted_data)
+    print(f"✅ Вставлено документів: {len(result.inserted_ids)}")
+
+    return jsonify({"message": "✅ Дані успішно завантажені в MongoDB!"})
+
+
+@app.route('/get_data')
+def get_data():
+    collection = mongo.db.scraped_data  
+    data = list(collection.find({}, {"_id": 0}))
+    return jsonify({"data": data})
 
 if __name__ == "__main__":
     app.run(debug=True, host="localhost",port=5003)

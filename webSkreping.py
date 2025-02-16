@@ -35,19 +35,19 @@ def fetch_data_from_url_latvia():
         driver.get(authorisationOfPaymentInstitutionsUrl)
         time.sleep(5)
 
-        for i in range(1, 11):
-            element = driver.find_element(By.XPATH, f"//div[contains(@id, 'ex-1-{i}')]")
-            element.click()
-            time.sleep(2)
+        # for i in range(1, 11):
+        #     element = driver.find_element(By.XPATH, f"//div[contains(@id, 'ex-1-{i}')]")
+        #     element.click()
+        #     time.sleep(2)
 
-            title_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/h3")
-            title_text = title_element.text
+        #     title_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/h3")
+        #     title_text = title_element.text
 
-            text_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/div")
-            text_content = text_element.text
+        #     text_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/div")
+        #     text_content = text_element.text
 
-            data[f"element_{i}_title_payment"] = title_text
-            data[f"element_{i}_text_payment"] = text_content
+        #     data[f"element_{i}_title_payment"] = title_text
+        #     data[f"element_{i}_text_payment"] = text_content
 
     except Exception as e:
         print(f"Error occurred: {e}")
@@ -55,6 +55,3 @@ def fetch_data_from_url_latvia():
         driver.quit()
 
     return data
-
-   
-# fetch_data_from_url_latvia()
