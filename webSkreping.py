@@ -18,7 +18,7 @@ def fetch_data_from_url_latvia():
     time.sleep(5)
 
     try:
-        for i in range(1, 11):
+        for i in range(1, 10):
             element = driver.find_element(By.XPATH, f"//div[contains(@id, 'ex-1-{i}')]")
             element.click()
             time.sleep(2)
