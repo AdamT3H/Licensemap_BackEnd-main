@@ -14,7 +14,10 @@ from flask import g
 
 app = Flask(__name__)
 load_dotenv()
-CORS(app, supports_credentials=True, origins=["http://localhost:3000"])
+CORS(app, supports_credentials=True, origins=[
+    "http://localhost:3000",
+    "https://your-frontend-host.com"
+])
 
 
 app.config['MONGO_URI'] = "mongodb+srv://Asstro699:qwerty111111@cluster0.lnr9qbv.mongodb.net/licenses?retryWrites=true&w=majority&appName=Cluster0"
@@ -73,7 +76,7 @@ def register():
         token,
         httponly=True,
         samesite='Strict',
-        secure=False,
+        secure=True,
         max_age=3600
     )
 
@@ -128,7 +131,7 @@ def login():
             token,
             httponly=True,
             samesite='Strict',
-            secure=False, 
+            secure=True, 
             max_age=3600
         )
         return response
