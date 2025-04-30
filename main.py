@@ -7,6 +7,7 @@ import os
 from functools import wraps
 import uuid
 from flask_cors import CORS
+from sqlalchemy import false
 from webSkreping import fetch_data_from_url_latvia
 import webSkreping
 import jwt
@@ -215,4 +216,4 @@ def get_data():
     return jsonify({"data": data})
 
 if __name__ == "__main__":
-    app.run(debug=True, host="localhost",port=5003)
+    app.run(port=5003)
