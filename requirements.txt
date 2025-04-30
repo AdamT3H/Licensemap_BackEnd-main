@@ -7,3 +7,5 @@ python-dotenv==1.0.1
 PyJWT==2.10.1
 undetected-chromedriver==3.5.5
 selenium==4.28.1
+setuptools==58.3.0
+
