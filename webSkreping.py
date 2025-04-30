@@ -1,6 +1,4 @@
 import time
-from seleniumbase import SB
-import configURL
 import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 

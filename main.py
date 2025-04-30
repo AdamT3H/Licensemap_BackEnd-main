@@ -3,17 +3,13 @@ from flask_pymongo import PyMongo
 from flask_bcrypt import Bcrypt
 import requests
 from dotenv import load_dotenv
-import os
 from functools import wraps
 import uuid
 from flask_cors import CORS
-from sqlalchemy import false
-from webSkreping import fetch_data_from_url_latvia
 import webSkreping
 import jwt
 import datetime
 from flask import make_response
-import secrets
 from flask import g
 
 app = Flask(__name__)
