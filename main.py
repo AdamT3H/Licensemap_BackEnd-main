@@ -15,11 +15,11 @@ from flask import g
 app = Flask(__name__)
 load_dotenv()
 CORS(app, supports_credentials=True, origins=[
+    "http://localhost:3000",
     "https://licensemap-2-0-front-end-ov9b.vercel.app"
 ])
 
-
-app.config['MONGO_URI'] = "mongodb+srv://Asstro699:qwerty111111@cluster0.lnr9qbv.mongodb.net/licenses?retryWrites=true&w=majority&appName=Cluster0"
+app.config['MONGO_URI'] = "mongodb+srv://UserAdam:Ogorodnik2006@cluster0.imsyknu.mongodb.net/user_posts?retryWrites=true&w=majority&appName=Cluster0"
 app.config['SECRET_KEY'] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
 
 
@@ -219,3 +219,4 @@ def get_data():
 
 if __name__ == "__main__":
     app.run(port=5003)
+    # app.run(debug=True, host="localhost",port=5003)
