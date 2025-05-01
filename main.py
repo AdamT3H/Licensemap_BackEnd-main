@@ -16,7 +16,8 @@ app = Flask(__name__)
 load_dotenv()
 CORS(app, supports_credentials=True, origins=[
     "http://localhost:3000",
-    "https://your-frontend-host.com"
+    "https://licensemap-backend-main.onrender.com",
+    "https://licensemap-2-0-front-end-ov9b.vercel.app/"
 ])
 
 
