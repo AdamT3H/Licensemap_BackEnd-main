@@ -15,7 +15,7 @@ from flask import g
 app = Flask(__name__)
 load_dotenv()
 CORS(app, supports_credentials=True, origins=[
-    "http://localhost:3000"
+    "https://licensemap-backend-main.onrender.com"
 ])
 
 app.config['MONGO_URI'] = "mongodb+srv://UserAdam:Ogorodnik2006@cluster0.imsyknu.mongodb.net/user_posts?retryWrites=true&w=majority&appName=Cluster0"
