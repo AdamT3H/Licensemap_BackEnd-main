@@ -68,7 +68,7 @@ def register():
             SECRET_KEY,
             algorithm="HS256"
         )
-        print(f"✅ Token set in cookie: {token}")
+        print(f"Token set in cookie: {token}")
 
         response = make_response(jsonify({"message": "Registration successful"}))
         response.set_cookie(
