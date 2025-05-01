@@ -29,57 +29,61 @@ SECRET_KEY = "XGmot4oBwiNlScwOgwhI6h-rDU2O2YkSFXB5AhtplPM"
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    data = request.get_json()
-    first_name = data.get("firstName")
-    last_name = data.get("lastName")
-    email = data.get("email")
-    username = data.get("username")
-    password = data.get("password")
-    confirm_password = data.get("confirmPassword")
+    try:
+        data = request.get_json()
+        first_name = data.get("firstName")
+        last_name = data.get("lastName")
+        email = data.get("email")
+        username = data.get("username")
+        password = data.get("password")
+        confirm_password = data.get("confirmPassword")
 
-    if not all([first_name, last_name, email, username, password, confirm_password]):
-        return jsonify({"message": "All fields are required"}), 400
+        if not all([first_name, last_name, email, username, password, confirm_password]):
+            return jsonify({"message": "All fields are required"}), 400
 
-    if password != confirm_password:
-        return jsonify({"message": "Passwords do not match"}), 400
+        if password != confirm_password:
+            return jsonify({"message": "Passwords do not match"}), 400
 
-    existing_user = mongo.db.user_posts.find_one({'username': username})
-    if existing_user:
-        return jsonify({"message": "User is already registered"}), 400
+        existing_user = mongo.db.user_posts.find_one({'username': username})
+        if existing_user:
+            return jsonify({"message": "User is already registered"}), 400
 
-    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = {
-        'first_name': first_name,
-        'last_name': last_name,
-        'email': email,
-        'username': username,
-        'hash_password': hashed_password
-    }
+        new_user = {
+            'first_name': first_name,
+            'last_name': last_name,
+            'email': email,
+            'username': username,
+            'hash_password': hashed_password
+        }
 
-    insert_result = mongo.db.user_posts.insert_one(new_user)
+        insert_result = mongo.db.user_posts.insert_one(new_user)
 
-    token = jwt.encode(
-        {
-            "user_id": str(insert_result.inserted_id),
-            "username": username,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        },
-        SECRET_KEY,
-        algorithm="HS256"
-    )
+        token = jwt.encode(
+            {
+                "user_id": str(insert_result.inserted_id),
+                "username": username,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            },
+            SECRET_KEY,
+            algorithm="HS256"
+        )
 
-    response = make_response(jsonify({"message": "Registration successful"}))
-    response.set_cookie(
-        "token",
-        token,
-        httponly=True,
-        samesite='Strict',
-        secure=True,
-        max_age=3600
-    )
+        response = make_response(jsonify({"message": "Registration successful"}))
+        response.set_cookie(
+            "token",
+            token,
+            httponly=True,
+            samesite='Strict',
+            secure=True,
+            max_age=3600
+        )
 
-    return response, 201
+        return response, 201
+    except Exception as e:
+        print("❌ Register error:", str(e))
+        return jsonify({"message": "Internal server error"}), 500
 
 def token_required(f):
     @wraps(f)
