@@ -75,7 +75,7 @@ def register():
             "token",
             token,
             httponly=True,
-            samesite='Strict',
+            samesite='Lax',
             secure=False,
             max_age=3600
         )
@@ -133,7 +133,7 @@ def login():
             "token",
             token,
             httponly=True,
-            samesite='Strict',
+            samesite='Lax',
             secure=False, 
             max_age=3600
         )
