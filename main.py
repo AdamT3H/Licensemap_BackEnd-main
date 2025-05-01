@@ -76,7 +76,7 @@ def register():
             token,
             httponly=True,
             samesite='Strict',
-            secure=True,
+            secure=False,
             max_age=3600
         )
 
@@ -134,7 +134,7 @@ def login():
             token,
             httponly=True,
             samesite='Strict',
-            secure=True, 
+            secure=False, 
             max_age=3600
         )
         return response
