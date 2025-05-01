@@ -76,8 +76,7 @@ def register():
             token,
             httponly=True,
             samesite='Lax',
-            secure=False,
-            max_age=3600
+            secure=False
         )
 
         return response, 201
