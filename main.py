@@ -15,8 +15,7 @@ from flask import g
 app = Flask(__name__)
 load_dotenv()
 CORS(app, supports_credentials=True, origins=[
-    "http://localhost:3000",
-    "https://licensemap-2-0-front-end-ov9b.vercel.app"
+    "http://localhost:3000"
 ])
 
 app.config['MONGO_URI'] = "mongodb+srv://UserAdam:Ogorodnik2006@cluster0.imsyknu.mongodb.net/user_posts?retryWrites=true&w=majority&appName=Cluster0"
@@ -69,6 +68,7 @@ def register():
             SECRET_KEY,
             algorithm="HS256"
         )
+        print(f"✅ Token set in cookie: {token}")
 
         response = make_response(jsonify({"message": "Registration successful"}))
         response.set_cookie(
