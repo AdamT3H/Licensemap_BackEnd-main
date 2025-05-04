@@ -11,6 +11,7 @@ import jwt
 import datetime
 from flask import make_response
 from flask import g
+from bson import ObjectId
 
 app = Flask(__name__)
 load_dotenv()
@@ -216,6 +217,101 @@ def get_data():
     data = list(collection.find({}, {"_id": 0}))
     return jsonify({"data": data})
 
+@app.route("/me", methods=["GET"])
+@token_required
+def me():
+    user_id = g.user.get("user_id")
+    user = mongo.db.user_posts.find_one({"_id": ObjectId(user_id)})
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return jsonify({
+        "user": {
+            "first_name": user.get("first_name", ""),
+            "last_name": user.get("last_name", ""),
+            "username": user.get("username", "")
+        }
+    }), 200
+
+@app.route("/update_password", methods=["POST"])
+@token_required
+def update_password():
+    data = request.get_json()
+    old_password = data.get("oldPassword")
+    new_password = data.get("newPassword")
+
+    if not old_password or not new_password:
+        return jsonify({"message": "Missing old or new password"}), 400
+
+    user = mongo.db.user_posts.find_one({"username": g.user["username"]})
+
+    if not user or not bcrypt.check_password_hash(user["hash_password"], old_password):
+        return jsonify({"message": "Incorrect current password"}), 401
+
+    hashed_new_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    mongo.db.user_posts.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"hash_password": hashed_new_password}}
+    )
+
+    return jsonify({"message": "Password updated successfully"}), 200
+
+@app.route("/get_profile", methods=["GET"])
+@token_required
+def get_profile():
+    user_id = g.user.get("user_id")
+    user = mongo.db.user_posts.find_one({"_id": ObjectId(user_id)})
+    
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return jsonify({
+        "first_name": user.get("first_name", ""),
+        "last_name": user.get("last_name", ""),
+        "username": user.get("username", ""),
+        "email": user.get("email", "")
+    }), 200
+
+@app.route("/update_profile", methods=["PUT"])
+@token_required
+def update_profile():
+    data = request.get_json()
+    update_fields = {
+        "first_name": data.get("first_name"),
+        "last_name": data.get("last_name"),
+        "username": data.get("username"),
+        "email": data.get("email")
+    }
+    mongo.db.user_posts.update_one(
+        {"username": g.user["username"]},
+        {"$set": update_fields}
+    )
+    return jsonify({"message": "Profile updated successfully"}), 200
+@app.route("/update_email", methods=["PUT"])
+@token_required
+def update_email():
+    try:
+        data = request.get_json()
+        new_email = data.get("email")
+
+        if not new_email:
+            return jsonify({"message": "Email is required"}), 400
+
+        result = mongo.db.user_posts.update_one(
+            {"_id": g.user["user_id"]},
+            {"$set": {"email": new_email}}
+        )
+
+        if result.modified_count == 1:
+            return jsonify({"message": "Email updated successfully"}), 200
+        else:
+            return jsonify({"message": "No changes made"}), 200
+
+    except Exception as e:
+        print("❌ Update email error:", str(e))
+        return jsonify({"message": "Internal server error"}), 500
+
 if __name__ == "__main__":
-    app.run(port=5003)
-    # app.run(debug=True, host="localhost",port=5003)
+    # app.run(port=5003)
+    app.run(debug=True, host="localhost",port=5003)

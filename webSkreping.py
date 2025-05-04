@@ -1,55 +1,21 @@
-import time
-import undetected_chromedriver as uc
-from selenium.webdriver.common.by import By
+
+import requests
+from bs4 import BeautifulSoup
 
 def fetch_data_from_url_latvia():
     data = {}
 
-    options = uc.ChromeOptions()
-    options.headless = False
+    url = "https://www.lb.lt/en/authorisation-of-electronic-money-institutions"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    authorisationOfElectronicMoneyInstitutionsUrl = "https://www.lb.lt/en/authorisation-of-electronic-money-institutions"
-    authorisationOfPaymentInstitutionsUrl = "https://www.lb.lt/en/authorisation-of-payment-institutions"
+    divs = soup.select("div.media-body")
 
-    driver = uc.Chrome(options=options)
-    driver.get(authorisationOfElectronicMoneyInstitutionsUrl)
-    time.sleep(5)
+    for i, div in enumerate(divs[:9], start=1):
+        title = div.find("h3")
+        text = div.find("div", recursive=False)
 
-    try:
-        for i in range(1, 10):
-            element = driver.find_element(By.XPATH, f"//div[contains(@id, 'ex-1-{i}')]")
-            element.click()
-            time.sleep(2)
-
-            title_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/h3")
-            title_text = title_element.text
-
-            text_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/div")
-            text_content = text_element.text
-
-            data[f"element_{i}_title"] = title_text
-            data[f"element_{i}_text"] = text_content
-
-        driver.get(authorisationOfPaymentInstitutionsUrl)
-        time.sleep(5)
-
-        # for i in range(1, 11):
-        #     element = driver.find_element(By.XPATH, f"//div[contains(@id, 'ex-1-{i}')]")
-        #     element.click()
-        #     time.sleep(2)
-
-        #     title_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/h3")
-        #     title_text = title_element.text
-
-        #     text_element = driver.find_element(By.XPATH, f"/html/body/section/div/div[2]/div/div/div[{i}]/div")
-        #     text_content = text_element.text
-
-        #     data[f"element_{i}_title_payment"] = title_text
-        #     data[f"element_{i}_text_payment"] = text_content
-
-    except Exception as e:
-        print(f"Error occurred: {e}")
-    finally:
-        driver.quit()
+        data[f"element_{i}_title"] = title.text.strip() if title else "No title"
+        data[f"element_{i}_text"] = text.text.strip() if text else "No text"
 
     return data
